@@ -109,8 +109,29 @@
     NSString *dbfilename = [options objectForKey:@"name"];
 
     NSString *dblocation = [options objectForKey:@"dblocation"];
+    if ([dblocation hasPrefix:@"appGroup:"]) {
+        // try to see if the app group path has already been cached
+        NSString *groupPath = appDBPaths[dblocation];
+        if (groupPath == NULL) {
+            // get the group name
+            NSArray *parts = [dblocation componentsSeparatedByString:@":"];
+            NSString *appGroupName = parts[1];
+
+            // get the shared group directory
+            NSURL *groupURL = [[NSFileManager defaultManager]
+                               containerURLForSecurityApplicationGroupIdentifier:appGroupName];
+            if (groupURL != NULL) {
+                groupPath = [groupURL path];
+                DLog(@"Found app group for %@ at path: %@", appGroupName, groupPath);
+                [appDBPaths setObject:groupPath forKey:dblocation];
+            } else {
+                DLog(@"App group %@ is not valid. No appGroup directory is available", appGroupName);
+            }
+        }
+    }
+
     if (dblocation == NULL) dblocation = @"docs";
-    // DLog(@"using db location: %@", dblocation);
+    DLog(@"using db location: %@", dblocation);
 
     NSString *dbname = [self getDBPath:dbfilename at:dblocation];
 

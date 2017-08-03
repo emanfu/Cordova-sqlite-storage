@@ -572,7 +572,17 @@
       if (!!openargs.location && !!openargs.iosDatabaseLocation) {
         throw newSQLError('AMBIGUOUS: both location and iosDatabaseLocation settings are present in openDatabase call. Please use either setting, not both.');
       }
-      dblocation = !!openargs.location && openargs.location === 'default' ? iosLocationMap['default'] : !!openargs.iosDatabaseLocation ? iosLocationMap[openargs.iosDatabaseLocation] : dblocations[openargs.location];
+
+      if (!!openargs.location && openargs.location === 'default') {
+        dblocation = iosLocationMap['default'];
+      } else if (!openargs.iosDatabaseLocation) {
+        dblocation = dblocations[openargs.location];
+      } else if (openargs.iosDatabaseLocation.indexOf('appGroup:') !== 0) {
+        dblocation = iosLocationMap[openargs.iosDatabaseLocation];
+      } else {
+        dblocation = openargs.iosDatabaseLocation;
+      }
+
       if (!dblocation) {
         throw newSQLError('Valid iOS database location could not be determined in openDatabase call');
       }
